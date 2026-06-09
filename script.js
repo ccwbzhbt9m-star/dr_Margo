@@ -4,16 +4,22 @@ let isOpened = false;
 function getPhotoSize() {
     if (window.innerWidth >= 1024) return 110;
     if (window.innerWidth >= 768) return 90;
-    return 75; // для телефона
+    return 80;
 }
 
-// Получаем минимальное расстояние между фото (чтобы не касались)
-function getMinDistance() {
-    const size = getPhotoSize();
-    return size + 20; // +20px отступа между фото
+// Получаем размер сердца
+function getHeartSize() {
+    if (window.innerWidth >= 1024) return 45;
+    if (window.innerWidth >= 768) return 38;
+    return 32;
 }
 
-// Проверка пересечения двух фото
+// Получаем минимальное расстояние между объектами
+function getMinDistance(photoSize, heartSize) {
+    return Math.min(photoSize, heartSize) + 20;
+}
+
+// Проверка пересечения двух объектов
 function isOverlapping(pos1, pos2, minDist) {
     const dx = pos1.left - pos2.left;
     const dy = pos1.top - pos2.top;
@@ -22,21 +28,21 @@ function isOverlapping(pos1, pos2, minDist) {
 }
 
 // Проверка пересечения с видео
-function isOverlappingWithVideo(left, top, size) {
+function isOverlappingWithVideo(left, top, size, type = 'photo') {
     const videoElem = document.getElementById('videoCenter');
     if (!videoElem || videoElem.style.display === 'none') return false;
     
     const videoRect = videoElem.getBoundingClientRect();
-    const margin = 25; // отступ от видео
+    const margin = (type === 'photo') ? 25 : 15;
     
-    const photoRight = left + size;
-    const photoBottom = top + size;
+    const objRight = left + size;
+    const objBottom = top + size;
     const videoLeft = videoRect.left - margin;
     const videoRight = videoRect.right + margin;
     const videoTop = videoRect.top - margin;
     const videoBottom = videoRect.bottom + margin;
     
-    return !(photoRight < videoLeft || left > videoRight || photoBottom < videoTop || top > videoBottom);
+    return !(objRight < videoLeft || left > videoRight || objBottom < videoTop || top > videoBottom);
 }
 
 // Проверка выхода за границы экрана
@@ -48,44 +54,27 @@ function isWithinBounds(left, top, size) {
            top + size <= window.innerHeight - margin;
 }
 
-// Проверка, что фото не слишком близко к краю (для красоты)
-function isTooCloseToEdge(left, top, size) {
-    const edgeMargin = 15;
-    return left < edgeMargin || 
-           top < edgeMargin || 
-           left + size > window.innerWidth - edgeMargin || 
-           top + size > window.innerHeight - edgeMargin;
-}
-
-// Генерация позиции без пересечений
-function getNonOverlappingPosition(existingPositions, photoSize, maxAttempts = 300) {
-    const minDist = getMinDistance();
+// Генерация позиции для объекта
+function getNonOverlappingPosition(existingPositions, objectSize, existingObjects, type = 'photo', maxAttempts = 200) {
     let attempts = 0;
     let left, top;
     
     while (attempts < maxAttempts) {
-        left = 15 + Math.random() * (window.innerWidth - photoSize - 30);
-        top = 60 + Math.random() * (window.innerHeight - photoSize - 80);
+        left = 15 + Math.random() * (window.innerWidth - objectSize - 30);
+        top = 60 + Math.random() * (window.innerHeight - objectSize - 100);
         
         let valid = true;
         
-        // Проверка выхода за границы
-        if (!isWithinBounds(left, top, photoSize)) {
+        if (!isWithinBounds(left, top, objectSize)) {
             valid = false;
         }
         
-        // Проверка близости к краю (для красоты, не строго)
-        if (isTooCloseToEdge(left, top, photoSize) && attempts < 200) {
+        if (isOverlappingWithVideo(left, top, objectSize, type)) {
             valid = false;
         }
         
-        // Проверка пересечения с видео
-        if (isOverlappingWithVideo(left, top, photoSize)) {
-            valid = false;
-        }
-        
-        // Проверка пересечения с другими фото
         for (let pos of existingPositions) {
+            const minDist = getMinDistance(objectSize, objectSize);
             if (isOverlapping({ left, top }, pos, minDist)) {
                 valid = false;
                 break;
@@ -98,34 +87,8 @@ function getNonOverlappingPosition(existingPositions, photoSize, maxAttempts = 3
         attempts++;
     }
     
-    // Если не нашли идеальное место, пробуем с меньшими требованиями
-    attempts = 0;
-    while (attempts < 100) {
-        left = 10 + Math.random() * (window.innerWidth - photoSize - 20);
-        top = 50 + Math.random() * (window.innerHeight - photoSize - 70);
-        
-        let valid = true;
-        
-        if (isOverlappingWithVideo(left, top, photoSize)) {
-            valid = false;
-        }
-        
-        for (let pos of existingPositions) {
-            if (isOverlapping({ left, top }, pos, minDist - 10)) {
-                valid = false;
-                break;
-            }
-        }
-        
-        if (valid) {
-            return { left, top };
-        }
-        attempts++;
-    }
-    
-    // Самый последний вариант
-    return { left: 50 + Math.random() * (window.innerWidth - photoSize - 100), 
-             top: 80 + Math.random() * (window.innerHeight - photoSize - 120) };
+    return { left: 30 + Math.random() * (window.innerWidth - objectSize - 60), 
+             top: 70 + Math.random() * (window.innerHeight - objectSize - 100) };
 }
 
 function getRandomRotation() {
@@ -133,13 +96,13 @@ function getRandomRotation() {
 }
 
 function makeConfetti() {
-    const colors = ['#ff1493', '#ff69b4', '#ffb6c1', '#ff4500', '#ffd700', '#ff6347', '#ff6b6b', '#ffa500', '#00ff7f', '#00bfff'];
+    const colors = ['#ff1493', '#ff69b4', '#ffb6c1', '#ff4500', '#ffd700', '#ff6347', '#ff6b6b', '#ffa500', '#ff85b3', '#ff4d6d'];
     
     const envelopeRect = document.getElementById('envelope').getBoundingClientRect();
     const centerX = envelopeRect.left + envelopeRect.width / 2;
     const centerY = envelopeRect.top + envelopeRect.height / 2;
     
-    const count = window.innerWidth < 768 ? 120 : 280;
+    const count = window.innerWidth < 768 ? 120 : 250;
     
     for (let i = 0; i < count; i++) {
         const conf = document.createElement('div');
@@ -199,6 +162,108 @@ function showVideoInCenter() {
     video.play().catch(e => console.log('Автовоспроизведение заблокировано:', e));
 }
 
+function createHearts() {
+    const heartsContainer = document.getElementById('heartsContainer');
+    heartsContainer.innerHTML = '';
+    
+    const heartSize = getHeartSize();
+    const photoSize = getPhotoSize();
+    
+    // Собираем существующие позиции фото
+    const existingPhotos = [];
+    const photoElements = document.querySelectorAll('.photo-card');
+    photoElements.forEach(photo => {
+        const left = parseFloat(photo.style.left);
+        const top = parseFloat(photo.style.top);
+        if (!isNaN(left) && !isNaN(top)) {
+            existingPhotos.push({ left, top });
+        }
+    });
+    
+    // Добавляем позицию видео как препятствие
+    const videoElem = document.getElementById('videoCenter');
+    let videoPos = null;
+    if (videoElem && videoElem.style.display !== 'none') {
+        const videoRect = videoElem.getBoundingClientRect();
+        videoPos = { left: videoRect.left, top: videoRect.top, width: videoRect.width, height: videoRect.height };
+    }
+    
+    const heartCount = window.innerWidth < 768 ? 18 : 28;
+    const heartPositions = [];
+    
+    for (let i = 0; i < heartCount; i++) {
+        let attempts = 0;
+        let left, top;
+        let placed = false;
+        
+        while (attempts < 100 && !placed) {
+            left = 10 + Math.random() * (window.innerWidth - heartSize - 20);
+            top = 10 + Math.random() * (window.innerHeight - heartSize - 20);
+            
+            let valid = true;
+            
+            // Проверка с фото
+            for (let photo of existingPhotos) {
+                const minDist = heartSize + photoSize/2 + 15;
+                const dx = (left + heartSize/2) - (photo.left + photoSize/2);
+                const dy = (top + heartSize/2) - (photo.top + photoSize/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < minDist) {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            // Проверка с видео
+            if (videoPos) {
+                const margin = 20;
+                const heartRight = left + heartSize;
+                const heartBottom = top + heartSize;
+                const videoLeft = videoPos.left - margin;
+                const videoRight = videoPos.left + videoPos.width + margin;
+                const videoTop = videoPos.top - margin;
+                const videoBottom = videoPos.top + videoPos.height + margin;
+                
+                if (!(heartRight < videoLeft || left > videoRight || heartBottom < videoTop || top > videoBottom)) {
+                    valid = false;
+                }
+            }
+            
+            // Проверка с другими сердечками
+            for (let heart of heartPositions) {
+                const minDist = heartSize + 8;
+                const dx = (left + heartSize/2) - (heart.left + heartSize/2);
+                const dy = (top + heartSize/2) - (heart.top + heartSize/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < minDist) {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            if (valid) {
+                placed = true;
+                heartPositions.push({ left, top });
+                
+                const heartDiv = document.createElement('div');
+                heartDiv.className = 'heart-item';
+                heartDiv.innerHTML = '💗';
+                heartDiv.style.left = left + 'px';
+                heartDiv.style.top = top + 'px';
+                heartDiv.style.width = heartSize + 'px';
+                heartDiv.style.height = heartSize + 'px';
+                heartDiv.style.fontSize = heartSize + 'px';
+                heartDiv.style.display = 'flex';
+                heartDiv.style.alignItems = 'center';
+                heartDiv.style.justifyContent = 'center';
+                
+                heartsContainer.appendChild(heartDiv);
+            }
+            attempts++;
+        }
+    }
+}
+
 function flyPhotosRandomly() {
     const container = document.getElementById('photosContainer');
     container.innerHTML = '';
@@ -207,10 +272,8 @@ function flyPhotosRandomly() {
     const photoSize = getPhotoSize();
     const positions = [];
     
-    console.log(`Размещаем 11 фото размером ${photoSize}px на экране ${window.innerWidth}x${window.innerHeight}`);
-    
     for (let i = 1; i <= 11; i++) {
-        const { left, top } = getNonOverlappingPosition(positions, photoSize);
+        const { left, top } = getNonOverlappingPosition(positions, photoSize, [], 'photo');
         positions.push({ left, top });
         
         const photoDiv = document.createElement('div');
@@ -221,7 +284,6 @@ function flyPhotosRandomly() {
         img.alt = `Фото ${i}`;
         
         img.onerror = () => {
-            console.log(`Фото ${i}.jpg не найдено`);
             img.src = `https://placehold.co/${photoSize}x${photoSize}?text=${i}`;
         };
         
@@ -243,6 +305,11 @@ function flyPhotosRandomly() {
             photoDiv.style.opacity = '1';
         }, i * 60);
     }
+    
+    // Добавляем сердечки после появления фото
+    setTimeout(() => {
+        createHearts();
+    }, 800);
 }
 
 function hideEnvelope() {
@@ -271,7 +338,7 @@ function openEnvelope() {
     setTimeout(() => showVideoInCenter(), 600);
     setTimeout(() => flyPhotosRandomly(), 800);
     setTimeout(() => hideButtonsAndFooter(), 400);
-    setTimeout(() => showMessage(), 1600);
+    setTimeout(() => showMessage(), 1800);
     
     const openBtn = document.getElementById('openBtn');
     if (openBtn) {
@@ -317,13 +384,12 @@ window.addEventListener('resize', () => {
     if (isOpened) {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            console.log('Экран изменён, пересчитываем позиции фото');
             flyPhotosRandomly();
         }, 300);
     }
 });
 
 console.log('✅ Скрипт загружен!');
-console.log('📁 Фото: pfoto/1.jpg - 11.jpg (11 штук)');
+console.log('📁 Фото: pfoto/1.jpg - 11.jpg');
 console.log('📁 Видео: birthday.mp4');
-console.log('📱 На телефоне фото не касаются друг друга и видео');
+console.log('💗 Добавлены розовые сердечки, которые не касаются фото');
