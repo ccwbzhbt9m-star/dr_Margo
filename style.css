@@ -14,13 +14,13 @@ body {
     font-family: 'Segoe UI', Arial, sans-serif;
     position: relative;
     overflow-x: hidden;
-    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path fill="%23ff69b4" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3c1.74,0 3.41.81 4.5,2.08C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.41 22,8.5c0,3.77-3.4,6.86-8.55,11.54L12,21.35Z"/></svg>') 13 13, auto;
+    overflow-y: auto;
 }
 
-/* Для мобильных устройств — обычный курсор */
-@media (max-width: 768px) {
+/* Курсор-сердечко только для компьютера */
+@media (min-width: 768px) {
     body {
-        cursor: auto;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path fill="%23ff69b4" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5 2,5.41 4.42,3 7.5,3c1.74,0 3.41.81 4.5,2.08C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.41 22,8.5c0,3.77-3.4,6.86-8.55,11.54L12,21.35Z"/></svg>') 13 13, auto;
     }
 }
 
@@ -148,19 +148,11 @@ button:active {
     pointer-events: auto;
     cursor: pointer;
     z-index: 1001;
-    transition: transform 0.2s;
+    transition: transform 0.2s, left 0s, top 0s;
 }
 
-.photo-card:hover {
+.photo-card:active {
     transform: scale(1.05) !important;
-    z-index: 1002;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-}
-
-.photo-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 /* Размер фото в зависимости от экрана */
@@ -171,7 +163,7 @@ button:active {
     .photo-card { width: 90px; height: 90px; }
 }
 @media (max-width: 767px) {
-    .photo-card { width: 70px; height: 70px; }
+    .photo-card { width: 75px; height: 75px; }
 }
 
 .video-center {
@@ -188,7 +180,7 @@ button:active {
     animation: zoomIn 0.5s ease;
 }
 
-/* Размер видео в зависимости от экрана */
+/* Размер видео */
 @media (min-width: 1024px) {
     .video-center { width: 380px; height: 285px; }
 }
@@ -196,7 +188,7 @@ button:active {
     .video-center { width: 320px; height: 240px; }
 }
 @media (max-width: 767px) {
-    .video-center { width: 260px; height: 195px; }
+    .video-center { width: 280px; height: 210px; }
 }
 
 .video-center video {
@@ -257,10 +249,6 @@ button:active {
     font-size: 32px;
     cursor: pointer;
     color: #ff69b4;
-}
-
-.close-modal:hover {
-    color: #ff1493;
 }
 
 .modal-inner h2 {
