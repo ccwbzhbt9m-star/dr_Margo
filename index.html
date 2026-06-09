@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>С Днём Рождения, Margoshka!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="envelope-wrapper" id="envelopeWrapper">
+    <div class="envelope" id="envelope">
+        <div class="flap"></div>
+        <div class="seal">❤️</div>
+    </div>
+</div>
+
+<div class="buttons" id="buttons">
+    <button class="btn-open" id="openBtn">📬 OPEN</button>
+    <button class="btn-dont" id="dontBtn">🚫 DON'T OPEN</button>
+</div>
+<div class="footer" id="footer">✨ для Margoshka ✨</div>
+
+<div id="photosContainer"></div>
+<div id="videoCenter" class="video-center" style="display: none;"></div>
+
+<div id="modal" class="modal">
+    <div class="modal-inner">
+        <span class="close-modal" id="modalClose">&times;</span>
+         <h2>😔 Неправильный выбор!</h2>
+        <div style="font-size: 100px; margin: 20px;">😢💔</div>
+        <p>Лучше нажми OPEN!</p>
+        <button id="modalConfirmBtn">Закрыть</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
